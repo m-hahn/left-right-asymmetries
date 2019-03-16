@@ -1,7 +1,7 @@
 import os
 import random
-import accessISWOCData
-import accessTOROTData
+#import accessISWOCData
+#import accessTOROTData
 import sys
 
 header = ["index", "word", "lemma", "posUni", "posFine", "morph", "head", "dep", "_", "_"]

@@ -16,8 +16,8 @@ model = sys.argv[2] #sys.argv[2]
 #assert len(sys.argv) == 13
 
 batchSize = 1
-lr_lm = 0.05
-
+lr_lm = 0.001 # used to be 0.05
+sys.argv.append("LR_LM:"+str(lr_lm))
 myID = random.randint(0,10000000)
 #
 
@@ -40,7 +40,7 @@ import os
 
 header = ["index", "word", "lemma", "posUni", "posFine", "morph", "head", "dep", "_", "_"]
 
-from corpusIterator import CorpusIterator
+from corpusIterator_FuncHead import CorpusIteratorFuncHead
 
 originalDistanceWeights = {}
 
@@ -58,7 +58,7 @@ def initializeOrderTable():
    distanceCounts = {}
    depsVocab = set()
    for partition in ["train", "dev"]:
-     for sentence in CorpusIterator(language,partition).iterator():
+     for sentence in CorpusIteratorFuncHead(language,partition).iterator():
       for line in sentence:
           vocab[line["word"]] = vocab.get(line["word"], 0) + 1
           line["coarse_dep"] = makeCoarse(line["dep"])
@@ -235,6 +235,7 @@ def orderSentence(sentence, dhLogits, printThings):
         if dependent["reordered_index"] > line["reordered_index"]:
            assert reordering[dependent["head"]] == line["reordered_index"]
            currentlyCrossing.append((line["reordered_index"], dependent["reordered_index"], dependent["coarse_dep"], "R", dependent["reordered_index"]))
+#      currentlyCrossing = [x for x in currentlyCrossing if x[2] != "mrk" and x[2] != "adj"]
       line["crossing"] = sorted(currentlyCrossing, key=lambda x:x[4])
       line["crossing"] = [x for x in line["crossing"] if x[2] in content_deps]
  #     print(line["reordered_index"], line["crossing"])
@@ -627,7 +628,7 @@ def doForwardPass(current, train=True):
 #    for i, sentence in enumerate(batchOrderLogits):
 #       embeddingsLayer
          print lossWords/wordNum
-         print ["CROSS ENTROPY", crossEntropy, exp(crossEntropy)]
+         print ["CROSS ENTROPY", crossEntropy, (crossEntropy)]
          print baselineAverageLoss
        crossEntropy = 0.99 * crossEntropy + 0.01 * float((loss).data.cpu().numpy())
        totalQuality = loss.data.cpu().numpy() # consists of lossesWord + lossesPOS
@@ -697,7 +698,7 @@ def computeDevLoss():
    devLossPOS = 0.0
    devWords = 0
 #   corpusDev = getNextSentence("dev")
-   corpusDev = CorpusIterator(language,"dev").iterator(rejectShortSentences = True)
+   corpusDev = CorpusIteratorFuncHead(language,"dev").iterator(rejectShortSentences = True)
 
    while True:
      try:
@@ -721,7 +722,9 @@ def computeDevLoss():
 
 while True:
 #  corpus = getNextSentence("train")
-  corpus = CorpusIterator(language).iterator(rejectShortSentences = True)
+  corpus = CorpusIteratorFuncHead(language)
+  corpus.permute()
+  corpus = corpus.iterator(rejectShortSentences = True)
 
 
   while True:
@@ -749,14 +752,14 @@ while True:
           devLossesPOS.append(newDevLossPOS)
           print "New dev loss "+str(newDevLoss)+". previous was: "+str(lastDevLoss)
           print "Saving"
-          save_path = "/u/scr/mhahn/deps/"
+          save_path = "../results5/"
           #save_path = "/afs/cs.stanford.edu/u/mhahn/scr/deps/"
-#          with open(save_path+"/language_modeling_coarse_plane_fixed/"+language+"_"+__file__+"_languageModel_performance_"+model+"_"+str(myID)+".tsv", "w") as outFile:
-#             print >> outFile, language
-#             print >> outFile, "\t".join(map(str, devLosses))
+          with open(save_path+"/"+language+"_"+__file__+"_languageModel_performance_"+model+"_"+str(myID)+".tsv", "w") as outFile:
+             print >> outFile, language
+             print >> outFile, "\t".join(map(str, devLosses))
 #             print >> outFile, "\t".join(map(str, devLossesWords))
 #             print >> outFile, "\t".join(map(str, devLossesPOS))
-#             print >> outFile, "\t".join(map(str, sys.argv))
+             print >> outFile, "\t".join(map(str, sys.argv))
 
 
 

@@ -16,8 +16,8 @@ model = sys.argv[2] #sys.argv[2]
 #assert len(sys.argv) == 13
 
 batchSize = 1
-lr_lm = 0.05
-
+lr_lm = 0.001 # used to be 0.05
+sys.argv.append("LR_LM:"+str(lr_lm))
 myID = random.randint(0,10000000)
 #
 
@@ -624,7 +624,7 @@ def doForwardPass(current, train=True):
 #    for i, sentence in enumerate(batchOrderLogits):
 #       embeddingsLayer
          print lossWords/wordNum
-         print ["CROSS ENTROPY", crossEntropy, exp(crossEntropy)]
+         print ["CROSS ENTROPY", crossEntropy, (crossEntropy)]
          print baselineAverageLoss
        crossEntropy = 0.99 * crossEntropy + 0.01 * float((loss).data.cpu().numpy())
        totalQuality = loss.data.cpu().numpy() # consists of lossesWord + lossesPOS
@@ -718,7 +718,9 @@ def computeDevLoss():
 
 while True:
 #  corpus = getNextSentence("train")
-  corpus = CorpusIteratorFuncHead(language).iterator(rejectShortSentences = True)
+  corpus = CorpusIteratorFuncHead(language)
+  corpus.permute()
+  corpus = corpus.iterator(rejectShortSentences = True)
 
 
   while True:
@@ -746,14 +748,14 @@ while True:
           devLossesPOS.append(newDevLossPOS)
           print "New dev loss "+str(newDevLoss)+". previous was: "+str(lastDevLoss)
           print "Saving"
-          save_path = "/u/scr/mhahn/deps/"
+          save_path = "../results5/"
           #save_path = "/afs/cs.stanford.edu/u/mhahn/scr/deps/"
-#          with open(save_path+"/language_modeling_coarse_plane_fixed/"+language+"_"+__file__+"_languageModel_performance_"+model+"_"+str(myID)+".tsv", "w") as outFile:
-#             print >> outFile, language
-#             print >> outFile, "\t".join(map(str, devLosses))
+          with open(save_path+"/"+language+"_"+__file__+"_languageModel_performance_"+model+"_"+str(myID)+".tsv", "w") as outFile:
+             print >> outFile, language
+             print >> outFile, "\t".join(map(str, devLosses))
 #             print >> outFile, "\t".join(map(str, devLossesWords))
 #             print >> outFile, "\t".join(map(str, devLossesPOS))
-#             print >> outFile, "\t".join(map(str, sys.argv))
+             print >> outFile, "\t".join(map(str, sys.argv))
 
 
 
