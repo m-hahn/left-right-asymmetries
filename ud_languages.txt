@@ -51,3 +51,14 @@ Portuguese
 English
 Italian
 Russian
+Korean
+Marathi
+Tamil
+Telugu
+Latin
+Ancient_Greek
+Old_Church_Slavonic
+Old_French
+Coptic
+Gothic
+
